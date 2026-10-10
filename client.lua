@@ -29,8 +29,10 @@ end
 -- Emergency repair: lifts a dead engine so the car can limp. Used by jg-mechanic's repair_kit.
 exports('EmergencyRepair', function(vehicle)
     if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then return false end
+    local lifted = false
     if GetVehicleEngineHealth(vehicle) < Config.EmergencyRepairHealth then
         SetVehicleEngineHealth(vehicle, Config.EmergencyRepairHealth + 0.0)
+        lifted = true -- only a really broken engine goes into limp mode (speed cap)
     end
     -- the emergency kit also puts burst tyres back (wheel indexes 0-5, 45/47 are the extra axles of big vehicles)
     for _, index in ipairs({ 0, 1, 2, 3, 4, 5, 45, 47 }) do
@@ -39,6 +41,9 @@ exports('EmergencyRepair', function(vehicle)
         end
     end
     SetVehicleUndriveable(vehicle, false)
+    if lifted and NetworkGetEntityIsNetworked(vehicle) then
+        TriggerServerEvent("county-vehdamage:server:setLimp", NetworkGetNetworkIdFromEntity(vehicle), true)
+    end
     return true
 end)
 
@@ -47,6 +52,7 @@ CreateThread(function()
     local undriveableSet = false
     local capVeh = 0 -- vehicle that currently has our top-speed cap
     local lastStartMsg = 0
+    local lastLimpClear = 0
     local speedHist = { 0.0, 0.0, 0.0 } -- km/h of the last three samples
 
     while true do
@@ -104,7 +110,15 @@ CreateThread(function()
                     SetVehicleUndriveable(veh, false)
                     undriveableSet = false
                 end
-                local cap = (tier == 2 and Config.Tiers.heavy.maxKmh) or (tier == 1 and Config.Tiers.light.maxKmh) or nil
+                local limp = Entity(veh).state.countyLimp
+                if limp and health >= Config.Tiers.light.below then
+                    if GetGameTimer() - lastLimpClear > 3000 then
+                        lastLimpClear = GetGameTimer()
+                        TriggerServerEvent('county-vehdamage:server:setLimp', NetworkGetNetworkIdFromEntity(veh), false)
+                    end
+                    limp = false
+                end
+                local cap = limp and Config.LimpMaxKmh or nil
                 if cap then
                     SetVehicleMaxSpeed(veh, cap / 3.6)
                     capVeh = veh

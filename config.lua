@@ -10,12 +10,11 @@ Config.MinBodyLoss = 8.0
 -- 8 body loss = -48, 20 = -120, 50 = -300, 100 = -600 engine health
 Config.EngineDamagePerBodyLoss = 6.0
 
--- Tiers (engine health below the value). torque = power multiplier, maxKmh = top speed cap (km/h).
--- An emergency-repaired engine (EmergencyRepairHealth) sits in the heavy tier, so the car limps at maxKmh until the mechanic fully repairs it.
+-- Tiers (engine health below the value). torque = power multiplier.
 -- The engine is dead below DeadBelow.
 Config.Tiers = {
-    light = { below = 700.0, torque = 0.92, maxKmh = 140.0, msg = 'Motordan garip sesler geliyor.' },
-    heavy = { below = 500.0, torque = 0.70, maxKmh = 70.0, msg = 'Motor ciddi hasar aldı, araç güçten düştü ve yavaşladı.' },
+    light = { below = 700.0, torque = 0.92, msg = 'Motordan garip sesler geliyor.' },
+    heavy = { below = 500.0, torque = 0.70, msg = 'Motor ciddi hasar aldı, araç güçten düştü.' },
 }
 Config.DeadBelow = 300.0
 Config.DeadMsg = 'Motor çöktü! Tamirci ya da acil onarım kiti gerekiyor.'
@@ -33,3 +32,7 @@ Config.SkipClasses = { [13] = true, [14] = true, [15] = true, [16] = true, [21] 
 Config.TyreBurstSpeedKmh = 150.0
 Config.TyreBurstChance = 100 -- % chance that one tyre bursts on such a crash
 Config.TyreBurstMsg = 'Çarpmanın şiddetiyle lastik patladı!'
+
+-- Limp mode: after an emergency repair (repair_kit) the vehicle is capped at this speed (km/h) until the engine is
+-- healthy again (full repair by a mechanic). Crash damage alone does NOT cap the top speed, it only costs power.
+Config.LimpMaxKmh = 70.0
