@@ -110,6 +110,7 @@ CreateThread(function()
                 lastBody = GetVehicleBodyHealth(veh)
                 lastTier = tierOf(GetVehicleEngineHealth(veh))
                 undriveableSet = false
+                SetVehicleEngineCanDegrade(veh, false) -- GTA slowly drains a low engine on its own; only crashes should change the health
                 baseMax = 0.0
                 lastLoss = -1.0
             end
@@ -288,5 +289,15 @@ RegisterNetEvent('county-vehdamage:client:setHealth', function(pct)
     else
         SetVehicleEngineHealth(veh, pct * 10.0)
         notify(('Motor canı %%%.0f olarak ayarlandı.'):format(pct), 'primary')
+    end
+
+    -- read the value back a second later: if GTA or another script changed it, say so
+    local wanted = (pct >= 100.0) and 1000.0 or pct * 10.0
+    Wait(1000)
+    if DoesEntityExist(veh) then
+        local now = GetVehicleEngineHealth(veh)
+        if math.abs(now - wanted) > 30.0 then
+            notify(('Dikkat: motor canı %%%.0f okundu, ayarlanan %%%.0f. Başka bir şey değiştirdi.'):format(now / 10.0, wanted / 10.0), 'error')
+        end
     end
 end)
