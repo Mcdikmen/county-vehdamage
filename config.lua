@@ -29,8 +29,8 @@ Config.SkipClasses = { [13] = true, [14] = true, [15] = true, [16] = true, [21] 
 
 -- High speed crashes burst one random tyre (needs a real crash, see MinBodyLoss).
 -- Speed is the peak of the last few samples before the impact, in km/h.
-Config.TyreBurstSpeedKmh = 150.0
-Config.TyreBurstChance = 100 -- % chance that one tyre bursts on such a crash
+Config.TyreBurstSpeedKmh = 100.0
+Config.TyreBurstChance = 3 -- % chance that one tyre bursts on such a crash (the emergency repair kit puts it back)
 Config.TyreBurstMsg = 'Çarpmanın şiddetiyle lastik patladı!'
 
 -- Top speed loss: starts the moment the engine makes noises (light tier) and grows with the damage, from
