@@ -15,6 +15,16 @@ local tierMsg = {
     [3] = Config.DeadMsg,
 }
 
+-- Share of the vehicle's top speed that is taken away at this engine health: SpeedLossMinPct right when the engine
+-- starts making noises (light tier) up to SpeedLossMaxPct at the dead threshold. Healthy engines lose nothing.
+local function speedLossFraction(health)
+    local from, to = Config.Tiers.light.below, Config.DeadBelow
+    if health >= from then return 0.0 end
+    local t = (from - health) / (from - to)
+    if t > 1.0 then t = 1.0 end
+    return (Config.SpeedLossMinPct + (Config.SpeedLossMaxPct - Config.SpeedLossMinPct) * t) / 100.0
+end
+
 -- Burst one random tyre (wheel indexes: 0/1 front, 4/5 rear, bikes 0 and 4). Tyres that cannot burst (bulletproof) are skipped.
 local function burstRandomTyre(vehicle)
     if not GetVehicleTyresCanBurst(vehicle) then return end
@@ -26,34 +36,37 @@ local function burstRandomTyre(vehicle)
     end
 end
 
--- Emergency repair: lifts a dead engine so the car can limp. Used by jg-mechanic's repair_kit.
+-- Emergency repair: only unlocks a dead engine (lifts it to EmergencyRepairHealth) and puts burst tyres back.
+-- The speed loss stays until a full repair (engine health back above the light tier). Used by jg-mechanic's repair_kit.
 exports('EmergencyRepair', function(vehicle)
     if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then return false end
-    local lifted = false
     if GetVehicleEngineHealth(vehicle) < Config.EmergencyRepairHealth then
         SetVehicleEngineHealth(vehicle, Config.EmergencyRepairHealth + 0.0)
-        lifted = true -- only a really broken engine goes into limp mode (speed cap)
     end
-    -- the emergency kit also puts burst tyres back (wheel indexes 0-5, 45/47 are the extra axles of big vehicles)
+    -- wheel indexes 0-5, 45/47 are the extra axles of big vehicles
     for _, index in ipairs({ 0, 1, 2, 3, 4, 5, 45, 47 }) do
         if IsVehicleTyreBurst(vehicle, index, false) or IsVehicleTyreBurst(vehicle, index, true) then
             SetVehicleTyreFixed(vehicle, index)
         end
     end
     SetVehicleUndriveable(vehicle, false)
-    if lifted and NetworkGetEntityIsNetworked(vehicle) then
-        TriggerServerEvent("county-vehdamage:server:setLimp", NetworkGetNetworkIdFromEntity(vehicle), true)
-    end
     return true
 end)
 
 CreateThread(function()
     local lastVeh, lastBody, lastTier = 0, 0.0, 0
     local undriveableSet = false
-    local capVeh = 0 -- vehicle that currently has our top-speed cap
+    local capVeh = 0        -- vehicle that currently has our top-speed cap
+    local baseMax = 0.0     -- top speed (m/s) of the current vehicle before our cap
+    local lastLoss = -1.0   -- last applied speed loss fraction
     local lastStartMsg = 0
-    local lastLimpClear = 0
     local speedHist = { 0.0, 0.0, 0.0 } -- km/h of the last three samples
+
+    local function clearCap(vehicle)
+        if vehicle ~= 0 and DoesEntityExist(vehicle) then SetVehicleMaxSpeed(vehicle, 0.0) end
+        capVeh = 0
+        lastLoss = -1.0
+    end
 
     while true do
         local wait = 250
@@ -68,6 +81,8 @@ CreateThread(function()
                 lastBody = GetVehicleBodyHealth(veh)
                 lastTier = tierOf(GetVehicleEngineHealth(veh))
                 undriveableSet = false
+                baseMax = 0.0
+                lastLoss = -1.0
             end
 
             -- crash detection: body health only goes down through damage, repairs raise it
@@ -94,6 +109,22 @@ CreateThread(function()
             end
             lastTier = tier
 
+            -- top speed loss (10-30%), kept for as long as the engine is below the light tier, i.e. until a full repair
+            local frac = speedLossFraction(health)
+            if frac > 0.0 then
+                if baseMax <= 0.0 then
+                    baseMax = GetVehicleEstimatedMaxSpeed(veh)
+                    if baseMax <= 0.0 then baseMax = GetVehicleModelEstimatedMaxSpeed(GetEntityModel(veh)) end
+                end
+                if baseMax > 0.0 and math.abs(frac - lastLoss) > 0.005 then
+                    SetVehicleMaxSpeed(veh, baseMax * (1.0 - frac))
+                    capVeh = veh
+                    lastLoss = frac
+                end
+            elseif capVeh == veh then
+                clearCap(veh)
+            end
+
             if tier == 3 then
                 wait = 0
                 SetVehicleEngineOn(veh, false, true, true)
@@ -110,22 +141,6 @@ CreateThread(function()
                     SetVehicleUndriveable(veh, false)
                     undriveableSet = false
                 end
-                local limp = Entity(veh).state.countyLimp
-                if limp and health >= Config.Tiers.light.below then
-                    if GetGameTimer() - lastLimpClear > 3000 then
-                        lastLimpClear = GetGameTimer()
-                        TriggerServerEvent('county-vehdamage:server:setLimp', NetworkGetNetworkIdFromEntity(veh), false)
-                    end
-                    limp = false
-                end
-                local cap = limp and Config.LimpMaxKmh or nil
-                if cap then
-                    SetVehicleMaxSpeed(veh, cap / 3.6)
-                    capVeh = veh
-                elseif capVeh == veh then
-                    SetVehicleMaxSpeed(veh, 0.0)
-                    capVeh = 0
-                end
                 if tier == 2 then
                     wait = 0
                     SetVehicleEngineTorqueMultiplier(veh, Config.Tiers.heavy.torque)
@@ -135,10 +150,7 @@ CreateThread(function()
                 end
             end
         else
-            if capVeh ~= 0 then
-                if DoesEntityExist(capVeh) then SetVehicleMaxSpeed(capVeh, 0.0) end
-                capVeh = 0
-            end
+            if capVeh ~= 0 then clearCap(capVeh) end
             lastVeh = 0
         end
 

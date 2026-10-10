@@ -13,8 +13,8 @@ Config.EngineDamagePerBodyLoss = 6.0
 -- Tiers (engine health below the value). torque = power multiplier.
 -- The engine is dead below DeadBelow.
 Config.Tiers = {
-    light = { below = 700.0, torque = 0.92, msg = 'Motordan garip sesler geliyor.' },
-    heavy = { below = 500.0, torque = 0.70, msg = 'Motor ciddi hasar aldı, araç güçten düştü.' },
+    light = { below = 700.0, torque = 0.92, msg = 'Motordan garip sesler geliyor, araç yavaşladı.' },
+    heavy = { below = 500.0, torque = 0.70, msg = 'Motor ciddi hasar aldı, araç güçten düştü ve iyice yavaşladı.' },
 }
 Config.DeadBelow = 300.0
 Config.DeadMsg = 'Motor çöktü! Tamirci ya da acil onarım kiti gerekiyor.'
@@ -33,6 +33,9 @@ Config.TyreBurstSpeedKmh = 150.0
 Config.TyreBurstChance = 100 -- % chance that one tyre bursts on such a crash
 Config.TyreBurstMsg = 'Çarpmanın şiddetiyle lastik patladı!'
 
--- Limp mode: after an emergency repair (repair_kit) the vehicle is capped at this speed (km/h) until the engine is
--- healthy again (full repair by a mechanic). Crash damage alone does NOT cap the top speed, it only costs power.
-Config.LimpMaxKmh = 70.0
+-- Top speed loss: starts the moment the engine makes noises (light tier) and grows with the damage, from
+-- SpeedLossMinPct at that point up to SpeedLossMaxPct when the engine is about to die. It stays until a FULL repair
+-- (engine health back above the light tier): the emergency kit only unlocks a dead engine and does not give the speed back.
+-- Stored in the engine health itself, so it survives garage store/spawn.
+Config.SpeedLossMinPct = 10.0
+Config.SpeedLossMaxPct = 30.0
