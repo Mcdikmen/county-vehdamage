@@ -78,10 +78,6 @@ exports('EmergencyRepair', function(vehicle)
     if not changed then return false end -- nothing to patch, the kit is not used up
 
     SetVehicleUndriveable(vehicle, false)
-    -- patched engine: no more random stalls until a full repair (flag cleared in the main loop)
-    if NetworkGetEntityIsNetworked(vehicle) then
-        TriggerServerEvent("county-vehdamage:server:setKit", NetworkGetNetworkIdFromEntity(vehicle), true)
-    end
     return true
 end)
 
@@ -93,7 +89,7 @@ CreateThread(function()
     local lastLoss = -1.0   -- last applied speed loss fraction
     local lastStartMsg = 0
     local speedHist = { 0.0, 0.0, 0.0 } -- km/h of the last three samples
-    local nextStallRoll, stallUntil, lastKitClear = 0, 0, 0
+    local nextStallRoll, stallUntil = 0, 0
 
     local function clearCap(vehicle)
         if vehicle ~= 0 and DoesEntityExist(vehicle) then SetVehicleMaxSpeed(vehicle, 0.0) end
@@ -193,12 +189,7 @@ CreateThread(function()
 
                 -- random stalls in the last stretch before the engine dies (Config.Stall); the driver can restart it
                 local stall = Config.Stall
-                local kitFlag = Entity(veh).state.countyKit
-                if kitFlag and health >= Config.Tiers.light.below and GetGameTimer() - lastKitClear > 3000 then
-                    lastKitClear = GetGameTimer()
-                    TriggerServerEvent('county-vehdamage:server:setKit', NetworkGetNetworkIdFromEntity(veh), false)
-                end
-                if stall.enabled and not kitFlag and health < stall.belowPct * 10.0 then
+                if stall.enabled and health < stall.belowPct * 10.0 then
                     local now = GetGameTimer()
                     if now < stallUntil then
                         wait = 0
