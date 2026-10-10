@@ -1,0 +1,96 @@
+local function notify(msg, kind)
+    TriggerEvent('QBCore:Notify', msg, kind or 'error')
+end
+
+local function tierOf(health)
+    if health < Config.DeadBelow then return 3 end
+    if health < Config.Tiers.heavy.below then return 2 end
+    if health < Config.Tiers.light.below then return 1 end
+    return 0
+end
+
+local tierMsg = {
+    [1] = Config.Tiers.light.msg,
+    [2] = Config.Tiers.heavy.msg,
+    [3] = Config.DeadMsg,
+}
+
+-- Emergency repair: lifts a dead engine so the car can limp. Used by jg-mechanic's repair_kit.
+exports('EmergencyRepair', function(vehicle)
+    if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then return false end
+    if GetVehicleEngineHealth(vehicle) < Config.EmergencyRepairHealth then
+        SetVehicleEngineHealth(vehicle, Config.EmergencyRepairHealth + 0.0)
+    end
+    SetVehicleUndriveable(vehicle, false)
+    return true
+end)
+
+CreateThread(function()
+    local lastVeh, lastBody, lastTier = 0, 0.0, 0
+    local undriveableSet = false
+    local lastStartMsg = 0
+
+    while true do
+        local wait = 250
+        local ped = PlayerPedId()
+        local veh = GetVehiclePedIsIn(ped, false)
+
+        if veh ~= 0 and GetPedInVehicleSeat(veh, -1) == ped and not Config.SkipClasses[GetVehicleClass(veh)] then
+            wait = 50
+
+            if veh ~= lastVeh then
+                lastVeh = veh
+                lastBody = GetVehicleBodyHealth(veh)
+                lastTier = tierOf(GetVehicleEngineHealth(veh))
+                undriveableSet = false
+            end
+
+            -- crash detection: body health only goes down through damage, repairs raise it
+            local body = GetVehicleBodyHealth(veh)
+            local loss = lastBody - body
+            if loss >= Config.MinBodyLoss then
+                local health = GetVehicleEngineHealth(veh) - loss * Config.EngineDamagePerBodyLoss
+                SetVehicleEngineHealth(veh, health + 0.0)
+            end
+            lastBody = body
+
+            -- tier effects
+            local health = GetVehicleEngineHealth(veh)
+            local tier = tierOf(health)
+
+            if tier > lastTier then
+                notify(tierMsg[tier])
+            end
+            lastTier = tier
+
+            if tier == 3 then
+                wait = 0
+                SetVehicleEngineOn(veh, false, true, true)
+                if not undriveableSet then
+                    SetVehicleUndriveable(veh, true)
+                    undriveableSet = true
+                end
+                if IsControlJustPressed(0, 71) and GetGameTimer() - lastStartMsg > 8000 then
+                    lastStartMsg = GetGameTimer()
+                    notify(Config.DeadStartMsg)
+                end
+            else
+                if undriveableSet then
+                    SetVehicleUndriveable(veh, false)
+                    undriveableSet = false
+                end
+                if tier == 2 then
+                    wait = 0
+                    SetVehicleEngineTorqueMultiplier(veh, Config.Tiers.heavy.torque)
+                elseif tier == 1 then
+                    wait = 0
+                    SetVehicleEngineTorqueMultiplier(veh, Config.Tiers.light.torque)
+                end
+            end
+        else
+            lastVeh = 0
+        end
+
+        Wait(wait)
+    end
+end)
