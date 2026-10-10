@@ -265,3 +265,30 @@ CreateThread(function()
         end
     end
 end)
+
+-- /motorcan: set (or show) the engine health of the vehicle the player is in, in percent. 100 = full repair.
+RegisterNetEvent('county-vehdamage:client:setHealth', function(pct)
+    local veh = GetVehiclePedIsIn(PlayerPedId(), false)
+    if veh == 0 then
+        return notify('Önce bir araca bin.')
+    end
+
+    if pct == nil then
+        return notify(('Motor canı: %%%.0f (hasar %%%.0f)'):format(GetVehicleEngineHealth(veh) / 10.0, 100.0 - GetVehicleEngineHealth(veh) / 10.0), 'primary')
+    end
+
+    pct = math.max(0.0, math.min(100.0, pct))
+    if pct >= 100.0 then
+        -- full repair, the same things the mechanic's full repair kit does
+        SetVehicleUndriveable(veh, false)
+        SetVehicleFixed(veh)
+        SetVehicleDeformationFixed(veh)
+        SetVehicleEngineHealth(veh, 1000.0)
+        SetVehicleBodyHealth(veh, 1000.0)
+        SetVehiclePetrolTankHealth(veh, 1000.0)
+        notify('Araç tam tamir edildi (%100).', 'success')
+    else
+        SetVehicleEngineHealth(veh, pct * 10.0)
+        notify(('Motor canı %%%.0f olarak ayarlandı.'):format(pct), 'primary')
+    end
+end)
