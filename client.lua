@@ -121,7 +121,7 @@ CreateThread(function()
             local peak = math.max(kmh, speedHist[1], speedHist[2], speedHist[3])
             speedHist[3], speedHist[2], speedHist[1] = speedHist[2], speedHist[1], kmh
             if loss >= Config.MinBodyLoss then
-                if peak > Config.TyreBurstSpeedKmh and math.random(100) <= Config.TyreBurstChance then
+                if Config.TyreBurstEnabled and peak > Config.TyreBurstSpeedKmh and math.random(100) <= Config.TyreBurstChance then
                     burstRandomTyre(veh)
                 end
                 local before = GetVehicleEngineHealth(veh)

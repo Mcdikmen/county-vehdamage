@@ -28,6 +28,8 @@ Config.EmergencyRepairHealth = 250.0 -- 25% of the engine; does not stack (a hea
 Config.SkipClasses = { [13] = true, [14] = true, [15] = true, [16] = true, [21] = true }
 
 -- High speed crashes burst one random tyre (needs a real crash, see MinBodyLoss).
+-- Master switch: false = crashes never burst a tyre (the emergency kit still repairs burst tyres).
+Config.TyreBurstEnabled = false
 -- Speed is the peak of the last few samples before the impact, in km/h.
 Config.TyreBurstSpeedKmh = 100.0
 Config.TyreBurstChance = 50 -- % chance that one tyre bursts on such a crash (the emergency repair kit puts it back)
