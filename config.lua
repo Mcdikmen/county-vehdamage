@@ -39,3 +39,12 @@ Config.TyreBurstMsg = 'Çarpmanın şiddetiyle lastik patladı!'
 -- Stored in the engine health itself, so it survives garage store/spawn.
 Config.SpeedLossMinPct = 10.0
 Config.SpeedLossMaxPct = 30.0
+
+-- Debug (admins only): live engine health bar with body health, speed loss and tier, plus F8 prints on crashes.
+-- Set Config.Debug = false when testing is done; the engine warning light below stays for everybody.
+Config.Debug = true
+Config.DebugBar = { x = 0.5, y = 0.965, width = 0.20, height = 0.014 }
+
+-- Engine warning light for every driver: lit while the engine health is below the light tier (50%),
+-- flashing below the heavy tier (25%).
+Config.Lamp = { x = 0.445, y = 0.9, width = 0.05, height = 0.026 }
