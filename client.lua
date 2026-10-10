@@ -166,10 +166,8 @@ CreateThread(function()
             if tier == 3 then
                 wait = 0
                 SetVehicleEngineOn(veh, false, true, true)
-                if not undriveableSet then
-                    SetVehicleUndriveable(veh, true)
-                    undriveableSet = true
-                end
+                SetVehicleUndriveable(veh, true) -- every frame, GTA resets it when the engine is touched
+                undriveableSet = true
                 if IsControlJustPressed(0, 71) and GetGameTimer() - lastStartMsg > 8000 then
                     lastStartMsg = GetGameTimer()
                     notify(Config.DeadStartMsg)

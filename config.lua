@@ -16,7 +16,7 @@ Config.Tiers = {
     light = { below = 500.0, torque = 0.92, msg = 'Motordan garip sesler geliyor, araç yavaşladı.' },
     heavy = { below = 250.0, torque = 0.70, msg = 'Motor ciddi hasar aldı, araç güçten düştü ve iyice yavaşladı.' },
 }
-Config.DeadBelow = 1.0 -- engine health 0 = 100% damaged = the engine dies
+Config.DeadBelow = 5.0 -- engine health under 0.5% (shown as 0%) = 100% damaged = the engine dies and cannot be started
 Config.DeadMsg = 'Motor çöktü! Tamirci ya da acil onarım kiti gerekiyor.'
 Config.DeadStartMsg = 'Motor bozuk, çalışmıyor.'
 
@@ -30,7 +30,7 @@ Config.SkipClasses = { [13] = true, [14] = true, [15] = true, [16] = true, [21] 
 -- High speed crashes burst one random tyre (needs a real crash, see MinBodyLoss).
 -- Speed is the peak of the last few samples before the impact, in km/h.
 Config.TyreBurstSpeedKmh = 100.0
-Config.TyreBurstChance = 3 -- % chance that one tyre bursts on such a crash (the emergency repair kit puts it back)
+Config.TyreBurstChance = 50 -- % chance that one tyre bursts on such a crash (the emergency repair kit puts it back)
 Config.TyreBurstMsg = 'Çarpmanın şiddetiyle lastik patladı!'
 
 -- Top speed loss: starts the moment the engine makes noises (light tier) and grows with the damage, from
