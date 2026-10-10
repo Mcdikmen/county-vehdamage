@@ -48,3 +48,14 @@ Config.DebugBar = { x = 0.5, y = 0.965, width = 0.20, height = 0.014 }
 -- Engine warning light for every driver: lit while the engine health is below the light tier (50%),
 -- flashing below the heavy tier (25%).
 Config.Lamp = { x = 0.445, y = 0.9, width = 0.05, height = 0.026 }
+
+-- Random stalls: while the engine health is in the last stretch before death (below belowPct %, still alive) the
+-- engine stalls at random. The driver can start it again (G / ignition) after restartDelayMs. All values are tunable.
+Config.Stall = {
+    enabled = true,
+    belowPct = 14.0,      -- engine health % under which stalls can happen (the engine is dead at 0)
+    chancePct = 20,       -- % chance per check that the engine stalls
+    checkMs = 5000,       -- how often the chance is rolled while the engine is running
+    restartDelayMs = 2500, -- the engine cannot be restarted for this long after a stall
+    msg = 'Motor stop etti!',
+}

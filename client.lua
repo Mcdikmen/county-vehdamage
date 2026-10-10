@@ -80,6 +80,7 @@ CreateThread(function()
     local lastLoss = -1.0   -- last applied speed loss fraction
     local lastStartMsg = 0
     local speedHist = { 0.0, 0.0, 0.0 } -- km/h of the last three samples
+    local nextStallRoll, stallUntil = 0, 0
 
     local function clearCap(vehicle)
         if vehicle ~= 0 and DoesEntityExist(vehicle) then SetVehicleMaxSpeed(vehicle, 0.0) end
@@ -175,6 +176,24 @@ CreateThread(function()
                 elseif tier == 1 then
                     wait = 0
                     SetVehicleEngineTorqueMultiplier(veh, Config.Tiers.light.torque)
+                end
+
+                -- random stalls in the last stretch before the engine dies (Config.Stall); the driver can restart it
+                local stall = Config.Stall
+                if stall.enabled and health < stall.belowPct * 10.0 then
+                    local now = GetGameTimer()
+                    if now < stallUntil then
+                        wait = 0
+                        SetVehicleEngineOn(veh, false, true, true)
+                    elseif now >= nextStallRoll then
+                        nextStallRoll = now + stall.checkMs
+                        if GetIsVehicleEngineRunning(veh) and math.random(100) <= stall.chancePct then
+                            SetVehicleEngineOn(veh, false, true, true)
+                            stallUntil = now + stall.restartDelayMs
+                            notify(stall.msg)
+                            debugPrint(('STALL at engine %.0f (%.1f%%), restart possible in %d ms'):format(health, health / 10.0, stall.restartDelayMs))
+                        end
+                    end
                 end
             end
         else
