@@ -233,7 +233,7 @@ CreateThread(function()
             Wait(0)
 
             -- engine warning light: lit below the light tier, flashing below the heavy tier, red when the engine is dead
-            if hud.tier >= 1 then
+            if hud.tier >= 1 and (not Config.Lamp.debugOnly or (Config.Debug and isAdmin)) then
                 local lamp = Config.Lamp
                 local visible = true
                 if hud.tier == 2 and Config.Lamp.blink then visible = (GetGameTimer() // 400) % 2 == 0 end
