@@ -10,10 +10,12 @@ Config.MinBodyLoss = 8.0
 -- 8 body loss = -48, 20 = -120, 50 = -300, 100 = -600 engine health
 Config.EngineDamagePerBodyLoss = 6.0
 
--- Tiers (engine health below the value). The engine is dead below DeadBelow.
+-- Tiers (engine health below the value). torque = power multiplier, maxKmh = top speed cap (km/h).
+-- An emergency-repaired engine (EmergencyRepairHealth) sits in the heavy tier, so the car limps at maxKmh until the mechanic fully repairs it.
+-- The engine is dead below DeadBelow.
 Config.Tiers = {
-    light = { below = 700.0, torque = 0.92, msg = 'Motordan garip sesler geliyor.' },
-    heavy = { below = 500.0, torque = 0.70, msg = 'Motor ciddi hasar aldı, araç güçten düştü.' },
+    light = { below = 700.0, torque = 0.92, maxKmh = 140.0, msg = 'Motordan garip sesler geliyor.' },
+    heavy = { below = 500.0, torque = 0.70, maxKmh = 70.0, msg = 'Motor ciddi hasar aldı, araç güçten düştü ve yavaşladı.' },
 }
 Config.DeadBelow = 300.0
 Config.DeadMsg = 'Motor çöktü! Tamirci ya da acil onarım kiti gerekiyor.'

@@ -28,6 +28,7 @@ end)
 CreateThread(function()
     local lastVeh, lastBody, lastTier = 0, 0.0, 0
     local undriveableSet = false
+    local capVeh = 0 -- vehicle that currently has our top-speed cap
     local lastStartMsg = 0
 
     while true do
@@ -79,6 +80,14 @@ CreateThread(function()
                     SetVehicleUndriveable(veh, false)
                     undriveableSet = false
                 end
+                local cap = (tier == 2 and Config.Tiers.heavy.maxKmh) or (tier == 1 and Config.Tiers.light.maxKmh) or nil
+                if cap then
+                    SetVehicleMaxSpeed(veh, cap / 3.6)
+                    capVeh = veh
+                elseif capVeh == veh then
+                    SetVehicleMaxSpeed(veh, 0.0)
+                    capVeh = 0
+                end
                 if tier == 2 then
                     wait = 0
                     SetVehicleEngineTorqueMultiplier(veh, Config.Tiers.heavy.torque)
@@ -88,6 +97,10 @@ CreateThread(function()
                 end
             end
         else
+            if capVeh ~= 0 then
+                if DoesEntityExist(capVeh) then SetVehicleMaxSpeed(capVeh, 0.0) end
+                capVeh = 0
+            end
             lastVeh = 0
         end
 
