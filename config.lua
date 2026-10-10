@@ -20,9 +20,9 @@ Config.DeadBelow = 1.0 -- engine health 0 = 100% damaged = the engine dies
 Config.DeadMsg = 'Motor çöktü! Tamirci ya da acil onarım kiti gerekiyor.'
 Config.DeadStartMsg = 'Motor bozuk, çalışmıyor.'
 
--- Emergency repair (repair_kit): lifts a dead engine to this health so the car can limp (heavy tier, ~24% speed loss).
+-- Emergency repair (repair_kit): lifts a dead engine to this health so the car can limp (25% health, ~20% speed loss, above the 14% stall band).
 -- Never lowers a healthier engine and does not touch the body. Full repair is a mechanic job (full_repair_kit).
-Config.EmergencyRepairHealth = 150.0
+Config.EmergencyRepairHealth = 250.0 -- 25% of the engine; does not stack (a healthier engine is not touched and the kit is not used up)
 
 -- Vehicle classes ignored: cycles, boats, helicopters, planes, trains
 Config.SkipClasses = { [13] = true, [14] = true, [15] = true, [16] = true, [21] = true }

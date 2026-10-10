@@ -59,15 +59,24 @@ end
 -- The speed loss stays until a full repair (engine health back above the light tier). Used by jg-mechanic's repair_kit.
 exports('EmergencyRepair', function(vehicle)
     if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then return false end
+    local changed = false
+
+    -- lifts the engine to EmergencyRepairHealth (25%); it does not stack, a healthier engine is left alone
     if GetVehicleEngineHealth(vehicle) < Config.EmergencyRepairHealth then
         SetVehicleEngineHealth(vehicle, Config.EmergencyRepairHealth + 0.0)
+        changed = true
     end
+
     -- wheel indexes 0-5, 45/47 are the extra axles of big vehicles
     for _, index in ipairs({ 0, 1, 2, 3, 4, 5, 45, 47 }) do
         if IsVehicleTyreBurst(vehicle, index, false) or IsVehicleTyreBurst(vehicle, index, true) then
             SetVehicleTyreFixed(vehicle, index)
+            changed = true
         end
     end
+
+    if not changed then return false end -- nothing to patch, the kit is not used up
+
     SetVehicleUndriveable(vehicle, false)
     -- patched engine: no more random stalls until a full repair (flag cleared in the main loop)
     if NetworkGetEntityIsNetworked(vehicle) then
