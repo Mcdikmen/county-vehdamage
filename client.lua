@@ -229,7 +229,7 @@ CreateThread(function()
             if hud.tier >= 1 then
                 local lamp = Config.Lamp
                 local visible = true
-                if hud.tier == 2 then visible = (GetGameTimer() // 400) % 2 == 0 end
+                if hud.tier == 2 and Config.Lamp.blink then visible = (GetGameTimer() // 400) % 2 == 0 end
                 if visible then
                     local r, g, b = 255, 150, 0
                     if hud.tier == 3 then r, g, b = 220, 30, 30 end
