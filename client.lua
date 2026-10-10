@@ -32,6 +32,12 @@ exports('EmergencyRepair', function(vehicle)
     if GetVehicleEngineHealth(vehicle) < Config.EmergencyRepairHealth then
         SetVehicleEngineHealth(vehicle, Config.EmergencyRepairHealth + 0.0)
     end
+    -- the emergency kit also puts burst tyres back (wheel indexes 0-5, 45/47 are the extra axles of big vehicles)
+    for _, index in ipairs({ 0, 1, 2, 3, 4, 5, 45, 47 }) do
+        if IsVehicleTyreBurst(vehicle, index, false) or IsVehicleTyreBurst(vehicle, index, true) then
+            SetVehicleTyreFixed(vehicle, index)
+        end
+    end
     SetVehicleUndriveable(vehicle, false)
     return true
 end)
