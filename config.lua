@@ -42,15 +42,6 @@ Config.TyreBurstMsg = 'Çarpmanın şiddetiyle lastik patladı!'
 Config.SpeedLossMinPct = 10.0
 Config.SpeedLossMaxPct = 30.0
 
--- Debug (admins only): live engine health bar with body health, speed loss and tier, plus F8 prints on crashes.
--- Set Config.Debug = false when testing is done; the engine warning light below stays for everybody.
-Config.Debug = false
-Config.DebugBar = { x = 0.5, y = 0.965, width = 0.20, height = 0.014 }
-
--- Engine warning light for every driver: lit while the engine health is below the light tier (50%),
--- optionally flashing below the heavy tier (25%) when blink = true. Off by default: the light just stays lit.
--- debugOnly = true: the light is only drawn for admins while Config.Debug is on (nobody sees it in normal play).
-Config.Lamp = { x = 0.445, y = 0.9, width = 0.05, height = 0.026, blink = false, debugOnly = true }
 
 -- Random stalls: while the engine health is in the last stretch before death (below belowPct %, still alive) the
 -- engine stalls at random. The driver can start it again (G / ignition) after restartDelayMs. All values are tunable.
